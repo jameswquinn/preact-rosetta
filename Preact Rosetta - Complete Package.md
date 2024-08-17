@@ -243,3 +243,419 @@ export function useDateTimeFormatter(options: Intl.DateTimeFormatOptions = {}) {
   }, [locale, options]);
 }
 ```
+### src/hooks/useNumberFormatter.ts
+
+```typescript
+import { useCallback } from 'preact/hooks';
+import { useRosetta } from './useRosetta';
+
+export function useNumberFormatter(options: Intl.NumberFormatOptions = {}) {
+  const { locale } = useRosetta();
+  
+  return useCallback((number: number) => {
+    return new Intl.NumberFormat(locale, options).format(number);
+  }, [locale, options]);
+}
+```
+
+### src/hooks/useCurrencyFormatter.ts
+
+```typescript
+import { useNumberFormatter } from './useNumberFormatter';
+
+export function useCurrencyFormatter(currency: string, options: Intl.NumberFormatOptions = {}) {
+  return useNumberFormatter({
+    style: 'currency',
+    currency,
+    ...options,
+  });
+}
+```
+
+### src/hooks/usePluralize.ts
+
+```typescript
+import { useCallback } from 'preact/hooks';
+import { useRosetta } from './useRosetta';
+
+export function usePluralize() {
+  const { translate } = useRosetta();
+
+  return useCallback((key: string, count: number, replacements: Record<string, any> = {}) => {
+    const pluralKey = `${key}_${count === 1 ? 'one' : 'other'}`;
+    return translate(pluralKey, { ...replacements, count });
+  }, [translate]);
+}
+```
+
+### src/utils/memoizedTranslations.ts
+
+```typescript
+export function memoizedTranslations<T extends Record<string, any>>(translations: T): T {
+  const memoized: Partial<T> = {};
+  
+  Object.keys(translations).forEach(key => {
+    Object.defineProperty(memoized, key, {
+      get: () => translations[key],
+      enumerable: true,
+    });
+  });
+
+  return memoized as T;
+}
+```
+
+### vite.config.ts
+
+```typescript
+import { defineConfig } from 'vite';
+import preact from '@preact/preset-vite';
+import dts from 'vite-plugin-dts';
+import { resolve } from 'path';
+
+export default defineConfig({
+  plugins: [
+    preact(),
+    dts({
+      insertTypesEntry: true,
+    }),
+  ],
+  build: {
+    lib: {
+      entry: resolve(__dirname, 'src/index.ts'),
+      name: 'PreactRosetta',
+      fileName: (format) => `preact-rosetta.${format}.js`,
+    },
+    rollupOptions: {
+      external: ['preact'],
+      output: {
+        globals: {
+          preact: 'Preact',
+        },
+      },
+    },
+  },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src'),
+    },
+  },
+});
+```
+
+### tsconfig.json
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2018",
+    "module": "ESNext",
+    "lib": ["ES2018", "DOM"],
+    "jsx": "react-jsx",
+    "jsxImportSource": "preact",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationDir": "./dist/types",
+    "outDir": "./dist",
+    "baseUrl": ".",
+    "paths": {
+      "*": ["src/*"]
+    }
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"]
+}
+```
+
+### package.json
+
+```json
+{
+  "name": "preact-rosetta",
+  "version": "1.0.0",
+  "description": "A powerful i18n library for Preact applications",
+  "main": "dist/preact-rosetta.umd.js",
+  "module": "dist/preact-rosetta.es.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/preact-rosetta.es.js",
+      "require": "./dist/preact-rosetta.umd.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "jest",
+    "lint": "eslint src --ext .ts,.tsx",
+    "format": "prettier --write \"src/**/*.{ts,tsx}\"",
+    "type-check": "tsc --noEmit",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run lint && npm run test && npm run build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yourusername/preact-rosetta.git"
+  },
+  "keywords": [
+    "preact",
+    "i18n",
+    "internationalization",
+    "localization",
+    "translation"
+  ],
+  "author": "Your Name <your.email@example.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/yourusername/preact-rosetta/issues"
+  },
+  "homepage": "https://github.com/yourusername/preact-rosetta#readme",
+  "peerDependencies": {
+    "preact": "^10.0.0"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.5.0",
+    "@types/jest": "^29.5.2",
+    "@typescript-eslint/eslint-plugin": "^5.59.9",
+    "@typescript-eslint/parser": "^5.59.9",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^8.8.0",
+    "eslint-plugin-preact": "^0.1.0",
+    "jest": "^29.5.0",
+    "preact": "^10.15.1",
+    "prettier": "^2.8.8",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.1.3",
+    "vite": "^4.3.9",
+    "vite-plugin-dts": "^2.3.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
+```
+
+### .npmignore
+
+```
+# Source files
+src/
+
+# Configuration files
+vite.config.ts
+tsconfig.json
+.eslintrc
+.prettierrc
+.babelrc
+
+# Git files
+.git
+.gitignore
+
+# CI files
+.travis.yml
+.gitlab-ci.yml
+.github
+
+# Editor files
+.vscode
+.idea
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Directory for instrumented libs generated by jscoverage/JSCover
+lib-cov
+
+# Coverage directory used by tools like istanbul
+coverage
+
+# nyc test coverage
+.nyc_output
+
+# Grunt intermediate storage (https://gruntjs.com/creating-plugins#storing-task-files)
+.grunt
+
+# Bower dependency directory (https://bower.io/)
+bower_components
+
+# node-waf configuration
+.lock-wscript
+
+# Compiled binary addons (https://nodejs.org/api/addons.html)
+build/Release
+
+# Dependency directories
+node_modules/
+jspm_packages/
+
+# TypeScript v1 declaration files
+typings/
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# dotenv environment variables file
+.env
+.env.test
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+dist
+
+# Gatsby files
+.cache/
+# Comment in the public line in if your project uses Gatsby and not Next.js
+# https://nextjs.org/blog/next-9-1#public-directory-support
+# public
+
+# vuepress build output
+.vuepress/dist
+
+# Serverless directories
+.serverless/
+
+# FuseBox cache
+.fusebox/
+
+# DynamoDB Local files
+.dynamodb/
+
+# TernJS port file
+.tern-port
+
+# Stores VSCode versions used for testing VSCode extensions
+.vscode-test
+
+# Temporary folders
+tmp/
+temp/
+```
+
+## Setup Instructions
+
+1. Create a new directory for your project:
+   ```
+   mkdir preact-rosetta
+   cd preact-rosetta
+   ```
+
+2. Initialize a new npm project:
+   ```
+   npm init -y
+   ```
+
+3. Install necessary dependencies:
+   ```
+   npm install --save-dev vite @preact/preset-vite vite-plugin-dts typescript @types/node preact
+   ```
+
+4. Create the file structure as outlined above.
+
+5. Copy each section of the code into its respective file.
+
+6. Update the `package.json` file with the contents provided earlier in this document.
+
+7. Install additional development dependencies:
+   ```
+   npm install --save-dev @types/jest jest ts-jest eslint @typescript-eslint/eslint-plugin @typescript-eslint/parser eslint-config-prettier eslint-plugin-preact prettier
+   ```
+
+8. Initialize Git repository:
+   ```
+   git init
+   ```
+
+9. Create a `.gitignore` file:
+   ```
+   echo "node_modules\ndist\n.DS_Store" > .gitignore
+   ```
+
+10. Make an initial commit:
+    ```
+    git add .
+    git commit -m "Initial commit"
+    ```
+
+11. Create a new repository on GitHub and push your local repository to it:
+    ```
+    git remote add origin https://github.com/yourusername/preact-rosetta.git
+    git branch -M main
+    git push -u origin main
+    ```
+
+12. Run the build script to ensure everything is set up correctly:
+    ```
+    npm run build
+    ```
+
+## Publishing to npm
+
+1. Make sure you have an npm account. If not, create one at [npmjs.com](https://www.npmjs.com/).
+
+2. Log in to your npm account in the terminal:
+   ```
+   npm login
+   ```
+
+3. Update the version number in `package.json` if necessary.
+
+4. Run the prepublish scripts to ensure everything is in order:
+   ```
+   npm run lint
+   npm run test
+   ```
+
+5. If all tests pass and there are no linting errors, you can publish the package:
+   ```
+   npm publish
+   ```
+
+   If this is your first time publishing this package, and the name is already taken, you may need to scope it to your npm username:
+   ```
+   npm publish --access public
+   ```
+
+6. Your package is now published! You can view it on the npm website at `https://www.npmjs.com/package/preact-rosetta` (or your scoped package name).
+
+7. To update the package in the future, make your changes, update the version number in `package.json`, and run `npm publish` again.
+
+Remember to keep your `README.md` up to date with any changes or new features you add to the package. Good documentation is key to a successful open-source project!
