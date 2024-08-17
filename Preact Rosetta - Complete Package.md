@@ -402,7 +402,7 @@ export default defineConfig({
     "format": "prettier --write \"src/**/*.{ts,tsx}\"",
     "type-check": "tsc --noEmit",
     "prepare": "npm run build",
-    "prepublishOnly": "npm run lint && npm run test"
+    "prepublishOnly": "npm run lint && npm run test && npm run build"
   },
   "repository": {
     "type": "git",
@@ -415,7 +415,7 @@ export default defineConfig({
     "localization",
     "translation"
   ],
-  "author": "Your Name",
+  "author": "Your Name <your.email@example.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/yourusername/preact-rosetta/issues"
@@ -426,18 +426,24 @@ export default defineConfig({
   },
   "devDependencies": {
     "@preact/preset-vite": "^2.5.0",
-    "@types/jest": "^27.0.0",
-    "@typescript-eslint/eslint-plugin": "^5.0.0",
-    "@typescript-eslint/parser": "^5.0.0",
-    "eslint": "^8.0.0",
-    "eslint-config-prettier": "^8.0.0",
+    "@types/jest": "^29.5.2",
+    "@typescript-eslint/eslint-plugin": "^5.59.9",
+    "@typescript-eslint/parser": "^5.59.9",
+    "eslint": "^8.42.0",
+    "eslint-config-prettier": "^8.8.0",
     "eslint-plugin-preact": "^0.1.0",
-    "jest": "^27.0.0",
-    "prettier": "^2.0.0",
-    "ts-jest": "^27.0.0",
-    "typescript": "^4.5.0",
+    "jest": "^29.5.0",
+    "preact": "^10.15.1",
+    "prettier": "^2.8.8",
+    "ts-jest": "^29.1.0",
+    "typescript": "^5.1.3",
     "vite": "^4.3.9",
-
+    "vite-plugin-dts": "^2.3.0"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}
 
 ```
 
